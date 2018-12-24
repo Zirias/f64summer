@@ -33,7 +33,7 @@ $(mprg2bas): tools/mprg2bas.c
 
 $(mksums): tools/mksums.c
 	$(CC) $(CFLAGS) -o$@ $<
-	$(STRIP) --strip-all $@
+	$(STRIP) --strip-all $@*
 
 $(SUBDIRS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
