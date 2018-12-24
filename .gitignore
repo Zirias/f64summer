@@ -1,0 +1,11 @@
+obj
+*.prg
+*.bas
+*.exe
+*~
+.*.swp
+*.lbl
+*.map
+mksums
+tools/mprg2bas
+
