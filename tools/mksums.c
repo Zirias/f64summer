@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	else
 	{
 	    if (!argv[0]) argv[0] = "mksums";
-	    fprintf(stderr, "USAGE: %s [-s] < input.prg > checksums.txt\n"
+	    fprintf(stderr, "Usage: %s [-s] < input.prg > checksums.txt\n"
 		    "       -s:   allow shifted spaces in input\n", argv[0]);
 	    return 1;
 	}

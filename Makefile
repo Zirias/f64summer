@@ -29,10 +29,10 @@ distclean: clean
 	rm -f *.prg
 
 $(mprg2bas): tools/mprg2bas.c
-	$(CC) $(CFLAGS) -o$@ $<
+	$(CC) $(CFLAGS) -o $@ $<
 
 $(mksums): tools/mksums.c
-	$(CC) $(CFLAGS) -o$@ $<
+	$(CC) $(CFLAGS) -o $@ $<
 	$(STRIP) --strip-all $@*
 
 $(SUBDIRS):
@@ -40,4 +40,3 @@ $(SUBDIRS):
 
 .PHONY: all clean distclean $(SUBDIRS)
 .PRECIOUS: %.bas
-
