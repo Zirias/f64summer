@@ -7,13 +7,19 @@ inquot		= $fe
 
 		lda	#<idlehook
 		sta	$302
-		lda	#>idlehook
-		sta	$303
 		lda	#<tkhook
 		sta	$304
-		lda	#>tkhook
+		lda	#>idlehook
+		sta	$303
 		sta	$305
-		rts
+		bit	$9002
+		bmi	unexpanded
+		lda	#$10
+		ldy	#$94
+		sta	store1+2
+		sta	store2+2
+		sty	colloop+2
+unexpanded:	rts
 
 idlehook:	lda	#$ff
 		sta	$15
@@ -44,6 +50,19 @@ lineloop:	lda	$200,x
 		bmi	skipspcheck
 		cmp	#' '
 		beq	next
+.ifdef REMSKIP
+		cmp	#':'
+		bne	skipspcheck
+skipcolloop:	lda	$201,x
+		cmp	#$8f	; REM
+		beq	done
+		cmp	#' '
+		beq	skipcolon
+		cmp	#':'
+		bne	skipquot
+skipcolon:	inx
+		bne	skipcolloop
+.endif
 skipspcheck:	cmp	#'"'
 		bne	skipquot
 		lda	#$ff
@@ -64,17 +83,12 @@ rotate:		ror	lfsr+1
 		bne	bitloop
 next:		inx
 		bne	lineloop
-done:		tax
-		lda	#$1e
-		ldy	#$96
-		bit	$9002
-		bmi	unexpanded
-		lda	#$10
-		ldy	#$94
-unexpanded:	sta	store1+2
-		sta	store2+2
-		sty	colloop+2
-		ldy	#$3
+done:		ldy	#$3
+.ifdef REMSKIP
+		ldx	#$0
+.else
+		tax
+.endif
 outloop:	lda	lfsr,x
 		and	#$f
 		jsr	tohexdigit

@@ -13,7 +13,7 @@
 
 unsigned char buf[BUFSIZE];
 
-int main()
+int main(int argc, char **argv)
 {
     SET_BINARY_MODE(stdin);
     SET_BINARY_MODE(stdout);
@@ -49,34 +49,79 @@ int main()
     uint16_t endaddress = startaddress + (uint16_t)nread - 1;
 
     unsigned char *r = buf;
-    int remaining = 79 - printf("0 fora=%" PRIu16 "to%" PRIu16
-            ":readb:pokea,b:next:sys%" PRIu16 ":data%u", startaddress,
-            endaddress, startaddress, (unsigned)*r++);
 
+    if (argc < 2 || strcmp(argv[1], "-v"))
+    {
+        int remaining = 78 - printf("0 fora=%" PRIu16 "to%" PRIu16
+                ":readb:pokea,b:next:sys%" PRIu16 ":data%u", startaddress,
+                endaddress, startaddress, (unsigned)*r++);
+
+        --nread;
+        int lineno = 0;
+        while (nread--)
+        {
+            int needed=2;
+            if (*r>9)++needed;
+            if (*r>99)++needed;
+            if (remaining - needed < 0)
+            {
+                ++lineno;
+                remaining = 73-needed;
+                if (lineno>9) --remaining;
+                if (lineno>99) --remaining;
+                if (lineno>999) --remaining;
+                if (lineno>9999) --remaining;
+                printf("\n%d data%u", lineno, (unsigned)*r++);
+            }
+            else
+            {
+                remaining -= needed;
+                printf(",%u", (unsigned)*r++);
+            }
+        }
+        putchar('\n');
+
+        return 0;
+    }
+
+    printf("0 s=5:l=4:for i=%" PRIu16 " to %" PRIu16
+            ":read x:if x>255 then 2\n", startaddress, endaddress+1);
+    puts("1 s=2*s-(s>4095)+x and 8191:poke i,x:next");
+    puts("2 if s<>x-256 then print\"error in line\";l:end");
+    printf("3 if i<%" PRIu16 " then l=l+1:i=i-1:next\n", endaddress+1);
+
+    int lineno = 4;
+    uint16_t sum = 5;
+    sum = ((sum << 1) + !!(sum & 4096) + (unsigned)*r) & 8191;
+    int remaining = 78 - printf("4 sys%" PRIu16  ":data%u", startaddress,
+            (unsigned)*r++);
     --nread;
-    int lineno = 0;
+
     while (nread--)
     {
-        int needed=2;
+        uint16_t nsum = ((sum << 1) + !!(sum & 4096) + (unsigned)*r) & 8191;
+        int nsumlen = 4;
+        if (nsum > (999-256)) ++nsumlen;
+        int needed = 2 + nsumlen;
         if (*r>9)++needed;
         if (*r>99)++needed;
         if (remaining - needed < 0)
         {
-            ++lineno;
-            remaining = 74-needed;
+            printf(",%u\n", sum+256);
+            remaining = 73 - (needed - nsumlen);
             if (lineno>9) --remaining;
             if (lineno>99) --remaining;
             if (lineno>999) --remaining;
             if (lineno>9999) --remaining;
-            printf("\n%d data%u", lineno, (unsigned)*r++);
+            printf("%d data%u", ++lineno, (unsigned)*r++);
         }
         else
         {
-            remaining -= needed;
+            remaining -= (needed - nsumlen);
             printf(",%u", (unsigned)*r++);
         }
+        sum = nsum;
     }
-    putchar('\n');
-
+    printf(",%u\n", sum+256);
     return 0;
 }

@@ -18,21 +18,45 @@ uint16_t warnlines[MAXLINES];
 
 int main(int argc, char **argv)
 {
+    int optsok = 1;
     int allowshiftspace = 0;
+    int skiprem = 0;
 
-    if (argc > 1)
+    for (int i = 1; i < argc; ++i)
     {
-	if (argc == 2 && !strcmp(argv[1], "-s"))
-	{
-	    allowshiftspace = 1;
-	}
-	else
-	{
-	    if (!argv[0]) argv[0] = "mksums";
-	    fprintf(stderr, "Usage: %s [-s] < input.prg > checksums.txt\n"
-		    "       -s:   allow shifted spaces in input\n", argv[0]);
-	    return 1;
-	}
+        size_t optlen = strlen(argv[i]);
+        if (argv[i][0] != '-')
+        {
+            optsok = 0;
+            goto argsdone;
+        }
+        for (size_t j = 1; j < optlen; ++j)
+        {
+            switch (argv[i][j])
+            {
+                case 's':
+                    allowshiftspace = 1;
+                    break;
+
+                case 'r':
+                    skiprem = 1;
+                    break;
+
+                default:
+                    optsok = 0;
+                    goto argsdone;
+            }
+        }
+    }
+
+argsdone:
+    if (!optsok)
+    {
+        if (!argv[0]) argv[0] = "mksums";
+        fprintf(stderr, "Usage: %s [-s] [-r] < input.prg > checksums.txt\n"
+                "       -s:   allow shifted spaces in input\n"
+                "       -r:   skip REM comments\n", argv[0]);
+        return 1;
     }
 
     SET_BINARY_MODE(stdin);
@@ -101,6 +125,7 @@ int main(int argc, char **argv)
     int retval = 0;
     size_t warnlinesnum = 0;
 
+    fflush(stderr);
     for (;;)
     {
 	if (pos > nread-2)
@@ -143,6 +168,18 @@ int main(int argc, char **argv)
 		c = ' ';
 	    }
 	    if (!inquot && c==' ') continue;
+            if (!inquot && skiprem)
+            {
+                if (c==':')
+                {
+                    while (buf[pos] == ' ' || buf[pos] == ':') ++pos;
+                    if (buf[pos] == 0x8f)
+                    {
+                        while (buf[pos]) ++pos;
+                        continue;
+                    }
+                }
+            }
 	    if (c=='"') inquot = !inquot;
 	    for (int b = 0; b < 8; ++b)
 	    {

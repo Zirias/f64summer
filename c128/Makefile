@@ -2,6 +2,12 @@ C64SYS?=c64
 C64AS?=ca65
 C64LD?=ld65
 
+ifeq ($(REMSKIP),1)
+DEFINES=-DREMSKIP
+else
+DEFINES=
+endif
+
 C64ASFLAGS?=-t $(C64SYS) -g
 C64LDFLAGS?=-Ln f64summer.lbl -m f64summer.map -Csrc/f64summer.cfg
 
@@ -17,7 +23,7 @@ obj:
 	mkdir obj
 
 obj/%.o: src/%.s src/f64summer.cfg Makefile | obj
-	$(C64AS) $(C64ASFLAGS) -o$@ $<
+	$(C64AS) $(C64ASFLAGS) $(DEFINES) -o$@ $<
 
 clean:
 	rm -fr obj *.lbl *.map

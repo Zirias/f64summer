@@ -7,11 +7,10 @@ inquot		= $db
 
 		lda	#<idlehook
 		sta	$302
-		lda	#>idlehook
-		sta	$303
 		lda	#<tkhook
 		sta	$304
-		lda	#>tkhook
+		lda	#>idlehook
+		sta	$303
 		sta	$305
 		rts
 
@@ -51,6 +50,19 @@ lineloop:	lda	$200,x
 		bmi	skipspcheck
 		cmp	#' '
 		beq	next
+.ifdef REMSKIP
+		cmp	#':'
+		bne	skipspcheck
+skipcolloop:	lda	$201,x
+		cmp	#$8f	; REM
+		beq	done
+		cmp	#' '
+		beq	skipcolon
+		cmp	#':'
+		bne	skipquot
+skipcolon:	inx
+		bne	skipcolloop
+.endif
 skipspcheck:	cmp	#'"'
 		bne	skipquot
 		lda	#$ff
@@ -72,7 +84,11 @@ rotate:		ror	lfsr+1
 next:		inx
 		bne	lineloop
 done:		ldy	#$3
+.ifdef REMSKIP
+		ldx	#$0
+.else
 		tax
+.endif
 outloop:	lda	lfsr,x
 		and	#$f
 		jsr	tohexdigit
