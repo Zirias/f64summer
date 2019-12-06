@@ -61,6 +61,7 @@ argsdone:
         if (!argv[0]) argv[0] = "mksums";
         fprintf(stderr, "Usage: %s [-s] [-r] < input.prg > checksums.txt\n"
                 "       -s:   allow shifted spaces in input\n"
+                "       -p:   allow alternative PETSCII codes in input\n"
                 "       -r:   skip REM comments\n", argv[0]);
         return 1;
     }

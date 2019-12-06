@@ -54,6 +54,7 @@ For creating checksums:
 
 creates checksums for the input.prg BASIC program in checksums.txt
 -s:     allow shifted spaces in input.prg
+-p:     allow alternative PETSCII codes in input.prg
 -r:     skip REM comments in lines with other code; use this option if you
         built the checksummers with REMSKIP=1 [1]
 
