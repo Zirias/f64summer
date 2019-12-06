@@ -168,6 +168,21 @@ argsdone:
                 retval = 1;
                 goto end;
             }
+            if (inquot && !allowaltpetscii)
+            {
+                if ((c >= 0x60 && c < 0x80)
+                        || (c >= 0xe0 && c < 0xff)
+                        || c == 0xde)
+                {
+                    if (warnaltpnum < MAXLINES)
+                    {
+                        warnaltp[warnaltpnum++] = lineno;
+                    }
+                    if (c == 0xde || c == 0x7e) c= 0xff;
+                    else if (c & 0x80) c -= 0x40;
+                    else c += 0x60;
+                }
+            }
             if (c==0xa0 && !allowshiftspace)
             {
                 if (warnsspnum < MAXLINES)
@@ -187,18 +202,6 @@ argsdone:
                         while (buf[pos]) ++pos;
                         continue;
                     }
-                }
-            }
-            if (inquot && !allowaltpetscii)
-            {
-                if ((c >= 0x60 && c < 0x80) || c == 0xde)
-                {
-                    if (warnaltpnum < MAXLINES)
-                    {
-                        warnaltp[warnaltpnum++] = lineno;
-                    }
-                    if (c == 0xde || c == 0x7e) c= 0xff;
-                    else c += 0x60;
                 }
             }
             if (c=='"') inquot = !inquot;
